@@ -3,6 +3,8 @@
 echo "root:jammy" | chpasswd
 echo "jammy:jammy" | chpasswd
 
+useradd -aG root jammy
+
 cat >> /etc/sudoers <<EOF
 jammy ALL=(ALL) NOPASSWD: ALL
 EOF
