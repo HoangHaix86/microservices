@@ -1,71 +1,20 @@
 #!/bin/bash
 
-# Enable kubelet service.
-sudo systemctl enable kubelet
-sudo kubeadm config images pull
+# Disable Swap Space
+sudo swapoff -a
+sudo sed -i '/ swap / s/^/#/' /etc/fstab
 
-# CRI-O
-sudo kubeadm config images pull --cri-socket /var/run/crio/crio.sock
+# Update and install dependency
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
 
-# Containerd
-sudo kubeadm config images pull --cri-socket /run/containerd/containerd.sock
+# Download the Google Cloud public signing key
+curl -fsSL https://dl.k8s.io/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
 
-# Docker
-sudo kubeadm config images pull --cri-socket /run/cri-dockerd.sock 
+# Add the Kubernetes apt repository
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-# /etc/hosts
-172.29.20.5 k8s-cluster.master-01
-
-# Select
-# CRI-O
-sudo kubeadm init \
-  --pod-network-cidr=10.244.0.0/16 \
-  --cri-socket /var/run/crio/crio.sock \
-  --upload-certs \
-  --control-plane-endpoint=k8s-cluster.computingforgeeks.com
-
-# Containerd
-sudo kubeadm init \
-  --pod-network-cidr=10.244.0.0/16 \
-  --cri-socket /run/containerd/containerd.sock \
-  --upload-certs \
-  --control-plane-endpoint=k8s-cluster.computingforgeeks.com
-
-# Docker
-# Must do https://computingforgeeks.com/install-mirantis-cri-dockerd-as-docker-engine-shim-for-kubernetes/
-sudo kubeadm init \
-  --pod-network-cidr=10.244.0.0/16 \
-  --cri-socket /run/cri-dockerd.sock  \
-  --upload-certs \
-  --control-plane-endpoint=k8s-cluster.computingforgeeks.com
-
-
-mkdir -p $HOME/.kube
-sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-kubeadm join k8s-cluster.computingforgeeks.com:6443 --token sr4l2l.2kvot0pfalh5o4ik \
-    --discovery-token-ca-cert-hash sha256:c692fb047e15883b575bd6710779dc2c5af8073f7cab460abd181fd3ddb29a18 \
-    --control-plane 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Update apt package index, install kubelet, kubeadm and kubectl
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl

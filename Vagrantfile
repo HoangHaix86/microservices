@@ -12,22 +12,40 @@ SCRIPT
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "ubuntu-jammy"
-  config.vm.hostname = "master"
-  config.vm.network "private_network", ip: "172.16.10.100"
-  config.vm.network "forwarded_port", id: 'ssh', guest:22, host: 2222
+    MasterCount = 1
+    (1..MasterCount).each do | i |
+        config.vm.define "k8s-master-#{i}" do | master |
+            master.vm.box = "ubuntu-jammy"
+            master.vm.hostname = "k8s-master-#{i}"
+            master.vm.network "private_network", ip: "172.16.1.#{i}"
 
-  config.vm.provision "shell", path: "./setup_k8s.sh"
-  config.vm.provision "shell", inline: $script
+            master.vm.provider "virtualbox" do |vb|
+                vb.name = "k8s-master-#{i}"
+                vb.memory = 4096
+                vb.cpus = 2
+            end
+        end
+    end
 
-  config.ssh.private_key_path = "./.ssh/id_rsa"
-  config.ssh.username = "jammy"
+    WorkerCount = 2
+    (1..WorkerCount).each do |i|
+        config.vm.define "k8s-worker-#{i}" do |worker|
+            worker.vm.box = "ubuntu-jammy"
+            worker.vm.hostname = "k8s-worker-#{i}"
+            worker.vm.network "private_network", ip: "172.16.2.#{i}"
 
-  config.vm.provider "virtualbox" do |vb, override|
-    vb.name = "master"
-    vb.cpus = 2
-    vb.memory = "4096"
-  end
+            worker.vm.provider "virtualbox" do |vb|
+                vb.name = "k8s-worker-#{i}"
+                vb.memory = 4096
+                vb.cpus = 2
+            end
+        end
+    end
 
+    # config.vm.provision "shell", path: "./setup_k8s.sh"
+    # config.vm.provision "shell", inline: $script
+
+    config.ssh.username = "jammy"
+    config.ssh.private_key_path = "./.ssh/id_rsa"
 
 end
