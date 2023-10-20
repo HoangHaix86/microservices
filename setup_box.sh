@@ -1,29 +1,40 @@
 #!/bin/bash
 
-echo "root:jammy" | chpasswd
-echo "jammy:jammy" | chpasswd
+# change password
+sudo echo "root:jammy" | chpasswd
+sudo echo "jammy:jammy" | chpasswd
 
-useradd -aG root jammy
+# add user to root group
+sudo useradd -aG root jammy
 
 cat >> /etc/sudoers <<EOF
 jammy ALL=(ALL) NOPASSWD: ALL
 EOF
 
-sed -ri "s/#UseDNS no/UseDNS no/" /etc/ssh/sshd_config
+# config sshd_config
+sudo sed -ri "s/#UseDNS no/UseDNS no/" /etc/ssh/sshd_config
+sudo sed -ri "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_config    
+sudo systemctl restart ssh
 
-rm -Rf /home/jammy/.ssh
-mkdir /home/jammy/.ssh
-wget -O /home/jammy/.ssh/authorized_keys https://raw.githubusercontent.com/HoangHaix86/microservices/main/.ssh/id_rsa.pub
-chown -R jammy:jammy /home/jammy/.ssh
-chmod 0700 /home/jammy/.ssh
-chmod 0600 /home/jammy/.ssh/authorized_keys
+# config ssh
+sudo rm -Rf /home/jammy/.ssh
+sudo mkdir /home/jammy/.ssh
+sudo wget -O /home/jammy/.ssh/authorized_keys https://raw.githubusercontent.com/HoangHaix86/microservices/main/.ssh/id_rsa.pub
+sudo chown -R jammy:jammy /home/jammy/.ssh
+sudo chmod 0700 /home/jammy/.ssh
+sudo chmod 0600 /home/jammy/.ssh/authorized_keys
 
-apt-get install -y linux-headers-$(uname -r) build-essential dkms
+# require
+sudo apt-get install -y linux-headers-$(uname -r) build-essential dkms
 
-wget https://download.virtualbox.org/virtualbox/7.0.10/VBoxGuestAdditions_7.0.10.iso 
+sudo wget https://download.virtualbox.org/virtualbox/7.0.10/VBoxGuestAdditions_7.0.10.iso 
 sudo mkdir /media/VBoxGuestAdditions 
 sudo mount -o loop,ro VBoxGuestAdditions_7.0.10.iso /media/VBoxGuestAdditions 
 sudo sh /media/VBoxGuestAdditions /VBoxLinuxAdditions.run 
-rm VBoxGuestAdditions_7.0.10.iso 
+sudo rm VBoxGuestAdditions_7.0.10.iso 
 sudo umount /media/VBoxGuestAdditions 
 sudo rmdir /media/VBoxGuestAdditions
+
+sudo apt update
+sudo apt -y full-upgrade
+[ -f /var/run/reboot-required ] && sudo reboot -f
