@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$script = <<-SCRIPT
+echo 132
+cat >> /etc/hosts<<EOF
+172.16.10.100 master
+172.16.10.101 worker-1
+172.16.10.102 worker-2
+EOF
+SCRIPT
+
+Vagrant.configure("2") do |config|
+
+    config.vm.define "dawd" do | master |
+        master.vm.box = "ubuntu-22.04.3"
+        master.vm.hostname = "test"
+        master.vm.network "private_network", ip: "172.16.1.10"
+
+        master.vm.provider "virtualbox" do |vb|
+            vb.name = "test"
+            vb.memory = 4096
+            vb.cpus = 2
+        end
+    end
+
+    # config.vm.provision "shell", path: "./setup_k8s.sh"
+    # config.vm.provision "shell", inline: $script
+    config.ssh.private_key_path = "../.ssh/id_ed25519"
+
+end
