@@ -1,20 +1,9 @@
 all:
-  hosts:
-    172.16.1.11: null
-    172.16.1.12: null
-    172.16.1.13: null
-    # lb:
-    #   hosts:
-    #     172.16.1.11: null
-    #     172.16.1.12: null
-    #     172.16.1.13: null
-    # master:
-    #   hosts:
-    #     172.16.2.11: null
-    #     172.16.2.12: null
-    #     172.16.2.13: null
-    # worker:
-    #   hosts:
-    #     172.16.3.11: null
-    #     172.16.3.12: null
-    #     172.16.3.13: null
+  children:
+    master:
+      hosts:
+        172.16.2.11:
+    worker:
+      hosts:
+        172.16.3.11:
+        172.16.3.12:

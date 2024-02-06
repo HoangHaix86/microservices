@@ -1,34 +1,30 @@
 #!/bin/bash
 
-publickey="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAuqWZt6waqg1GMANZsNwLVr8M8CxVWQNc7w2jJfd+QM"
+# Change root password
+echo "root:root" | sudo chpasswd
 
-echo "root:vagrant" | sudo chpasswd
-sudo usermod -aG sudo vagrant
+# Remove user hoanghai
+killall -u hoanghai && deluser --remove-home hoanghai
 
-sudo apt update
+# Remove default OpenSSH server
+apt remove -y openssh-server && apt autoremove -y && apt autoclean -y
 
-sudo apt remove -y openssh-server openssh-client ssh &&
-    sudo apt autoremove &&
-    sudo apt autoclean
+# Remove old configuration
+rm -rf /etc/ssh
 
-sudo apt update &&
-    sudo apt install -y openssh-server
+# Reinstall OpenSSH server
+apt install -y openssh-server
 
-[ -f ~/.ssh/authorized_keys ] && rm ~/.ssh/authorized_keys
+# Allow root login
+sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
 
-echo "$publickey" | tee -a ~/.ssh/authorized_keys
+# Allow ssh with public key
+sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
 
-sudo chmod 0700 ~/.ssh
-sudo chmod 0600 ~/.ssh/authorized_keys
+# Disable DNS
+sed -i 's/#?UseDNS.+/UseDNS no/g' /etc/ssh/sshd_config
 
-sudo tee -a /etc/sudoers <<EOF
-vagrant ALL=(ALL) NOPASSWD: ALL
-EOF
-
-# config UseDNS
-sed -ri 's/#?UseDNS.+/UseDNS no/g' /etc/ssh/sshd_config
-
-# 1
+# Setup for Vagrant box
 sudo apt-get install -y linux-headers-$(uname -r) build-essential dkms
 
 wget https://download.virtualbox.org/virtualbox/7.0.14/VBoxGuestAdditions_7.0.14.iso

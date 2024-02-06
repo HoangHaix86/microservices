@@ -1,0 +1,8 @@
+{
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": [
+            "file:///home/hoanghai/workspaces/microservices/2-Ansible/create-user-non-root.playbook.yaml",
+            "file:///home/hoanghai/workspaces/microservices/2-Ansible/kube-dependencies.yml"
+        ]
+    }
+}
